@@ -1,42 +1,30 @@
-from flask import Flask
+from telegram.ext import Updater, MessageHandler, Filters
 import discord
 import asyncio
 import os
-from telegram.ext import Updater, MessageHandler, Filters
-from threading import Thread
 from dotenv import load_dotenv
+from flask import Flask
 
+# Загружаем переменные из .env
 load_dotenv()
 
-# Получение токенов и ID из .env
 TG_TOKEN = os.getenv("TG_TOKEN")
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 
-# Flask-приложение (для Render, просто заглушка)
+# Flask-приложение для Render
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Бот работает!"
+    return 'Bot is running!'
 
-# Настройка Discord Intents
+# Настройка Discord-клиента с интентами
 intents = discord.Intents.default()
 intents.messages = True
 discord_client = discord.Client(intents=intents)
 
-# Отправка сообщений в Discord
-async def send_to_discord(message):
-    channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
-    if channel:
-        await channel.send(message)
-
-@discord_client.event
-async def on_ready():
-    print(f'[Discord] Logged in as {discord_client.user}')
-    start_tg_bot()
-
-# Telegram-бот запускается в отдельном потоке
+# Функция запуска Telegram-бота
 def start_tg_bot():
     updater = Updater(TG_TOKEN, use_context=True)
 
@@ -49,13 +37,19 @@ def start_tg_bot():
 
     updater.dispatcher.add_handler(MessageHandler(Filters.text & (~Filters.command), tg_handler))
     updater.start_polling()
-    updater.idle()
 
-# Запуск Flask + Discord клиента с асинхронным сервером
-if __name__ == '__main__':
-    # Запускаем Discord клиент в асинхронном режиме
-    loop = asyncio.get_event_loop()
-    loop.create_task(discord_client.start(DISCORD_TOKEN))
-    
-    # Запускаем Flask-приложение в том же loop
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)), use_reloader=False)
+# Отправка сообщений в Discord
+async def send_to_discord(message):
+    channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
+    if channel:
+        await channel.send(message)
+
+# Событие запуска Discord-бота
+@discord_client.event
+async def on_ready():
+    print(f'Discord bot logged in as {discord_client.user}')
+    start_tg_bot()
+
+# Запуск Discord-бота
+if __name__ == "__main__":
+    discord_client.run(DISCORD_TOKEN)
