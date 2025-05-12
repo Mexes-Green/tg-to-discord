@@ -1,9 +1,9 @@
 from flask import Flask
-from threading import Thread
-from telegram.ext import Updater, MessageHandler, Filters
 import discord
 import asyncio
 import os
+from telegram.ext import Updater, MessageHandler, Filters
+from threading import Thread
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,6 +25,17 @@ intents = discord.Intents.default()
 intents.messages = True
 discord_client = discord.Client(intents=intents)
 
+# Отправка сообщений в Discord
+async def send_to_discord(message):
+    channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
+    if channel:
+        await channel.send(message)
+
+@discord_client.event
+async def on_ready():
+    print(f'[Discord] Logged in as {discord_client.user}')
+    start_tg_bot()
+
 # Telegram-бот запускается в отдельном потоке
 def start_tg_bot():
     updater = Updater(TG_TOKEN, use_context=True)
@@ -40,18 +51,11 @@ def start_tg_bot():
     updater.start_polling()
     updater.idle()
 
-# Отправка сообщений в Discord
-async def send_to_discord(message):
-    channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
-    if channel:
-        await channel.send(message)
-
-@discord_client.event
-async def on_ready():
-    print(f'[Discord] Logged in as {discord_client.user}')
-    Thread(target=start_tg_bot).start()
-
-# Запуск Flask + Discord клиента
+# Запуск Flask + Discord клиента с асинхронным сервером
 if __name__ == '__main__':
-    Thread(target=lambda: discord_client.run(DISCORD_TOKEN)).start()
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+    # Запускаем Discord клиент в асинхронном режиме
+    loop = asyncio.get_event_loop()
+    loop.create_task(discord_client.start(DISCORD_TOKEN))
+    
+    # Запускаем Flask-приложение в том же loop
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)), use_reloader=False)
