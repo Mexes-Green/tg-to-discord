@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TG_TOKEN = os.getenv("5462407742:AAEdJ33X9sjEplXkB02MmQ7Trio-erDgYCk")
-DISCORD_TOKEN = os.getenv("7ceb4b62f30e862fbc3f24d51dbab0aaa0a006c8045a28b758afd0a19af43a31")
+TG_TOKEN = os.getenv("TG_TOKEN")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 
 # Создаем объект intents с необходимыми разрешениями
