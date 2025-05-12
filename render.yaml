@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: tg-to-discord-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    plan: free
+    envVars:
+      - key: TG_TOKEN
+        fromEnv: TG_TOKEN
+      - key: DISCORD_TOKEN
+        fromEnv: DISCORD_TOKEN
+      - key: DISCORD_CHANNEL_ID
+        fromEnv: DISCORD_CHANNEL_ID
